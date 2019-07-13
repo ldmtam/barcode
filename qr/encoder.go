@@ -3,6 +3,7 @@ package qr
 
 import (
 	"image"
+	"image/color"
 
 	"github.com/ldmtam/barcode"
 	"github.com/ldmtam/barcode/utils"
@@ -54,28 +55,46 @@ func (e Encoding) String() string {
 	return ""
 }
 
+// Option contains options for qr
+type Option struct {
+	QrColor         string
+	CorrectionLevel ErrorCorrectionLevel
+	EncodingMode    Encoding
+}
+
 // Encode returns a QR barcode with the given content, error correction level and uses the given encoding
-func Encode(content string, level ErrorCorrectionLevel, mode Encoding) (barcode.Barcode, error) {
-	bits, vi, err := mode.getEncoder()(content, level)
+func Encode(content string, opts *Option) (barcode.Barcode, error) {
+	bits, vi, err := opts.EncodingMode.getEncoder()(content, opts.CorrectionLevel)
 	if err != nil {
 		return nil, err
 	}
 
+	var rgbColor color.RGBA
+
+	if opts.QrColor == "" {
+		rgbColor = color.RGBA{R: 0, G: 0, B: 0, A: 255}
+	} else {
+		rgbColor, err = utils.ParseHexColor(opts.QrColor)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	blocks := splitToBlocks(bits.IterateBytes(), vi)
 	data := blocks.interleave(vi)
-	result := render(data, vi)
+	result := render(data, vi, rgbColor)
 	result.content = content
 	return result, nil
 }
 
-func render(data []byte, vi *versionInfo) *qrcode {
+func render(data []byte, vi *versionInfo, c color.RGBA) *qrcode {
 	dim := vi.modulWidth()
 	results := make([]*qrcode, 8)
 	for i := 0; i < 8; i++ {
-		results[i] = newBarcode(dim)
+		results[i] = newBarcode(dim, c)
 	}
 
-	occupied := newBarcode(dim)
+	occupied := newBarcode(dim, c)
 
 	setAll := func(x int, y int, val bool) {
 		occupied.Set(x, y, true)
