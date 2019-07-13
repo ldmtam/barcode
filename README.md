@@ -32,8 +32,15 @@ import (
 )
 
 func main() {
+	// Option to create qrcode. If QrColor is empty, qr color is black by default
+	opts := &qr.Option{
+		QrColor:         "#B9F50B",
+		CorrectionLevel: qr.H,
+		EncodingMode:    qr.Auto,
+	}
+
 	// Create the barcode
-	qrCode, _ := qr.Encode("Hello World", qr.M, qr.Auto)
+	qrCode, _ := qr.Encode("Hello World", opts)
 
 	// Scale the barcode to 200x200 pixels
 	qrCode, _ = barcode.Scale(qrCode, 200, 200)
