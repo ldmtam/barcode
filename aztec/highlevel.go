@@ -1,7 +1,7 @@
 package aztec
 
 import (
-	"github.com/boombuler/barcode/utils"
+	"github.com/ldmtam/barcode/utils"
 )
 
 func highlevelEncode(data []byte) *utils.BitList {
